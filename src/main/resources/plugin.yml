@@ -1,0 +1,37 @@
+name: StreamCam
+version: 1.0.0
+main: com.example.streamcam.StreamCam
+# 建议使用 1.20 或更高的 API 版本以兼容 Paper/Folia 的新特性
+api-version: 1.20
+author: GeminiAssistant
+description: A spectator camera cycling and focus plugin with AFK/Blacklist filtering.
+
+commands:
+  streamcycle:
+    description: 开始自动轮播观察模式。
+    usage: /streamcycle [秒数]
+    permission: streamcam.use
+    aliases: [scycle]
+  streamfocus:
+    description: 开始聚焦模式，只观察活跃玩家。
+    usage: /streamfocus
+    permission: streamcam.use
+    aliases: [sfocus]
+  streambl:
+    description: 管理导播黑名单，排除特定玩家。
+    usage: /streambl <add|remove|list> [玩家名]
+    permission: streamcam.admin
+    aliases: [sbl]
+  streamnext:
+    description: 立即切换到下一个目标玩家。
+    usage: /streamnext
+    permission: streamcam.use
+    aliases: [snext]
+
+permissions:
+  streamcam.use:
+    description: 允许玩家使用轮播、聚焦和切换指令。
+    default: op
+  streamcam.admin:
+    description: 允许玩家管理黑名单。
+    default: op
