@@ -1,5 +1,7 @@
 package com.example.streamcam;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -20,6 +22,10 @@ import org.bukkit.event.player.*;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -48,6 +54,7 @@ public class StreamCam extends JavaPlugin implements CommandExecutor, Listener {
         if (getCommand("streamnext") != null) getCommand("streamnext").setExecutor(this); // 注册新指令
         if (getCommand("streamping") != null) getCommand("streamping").setExecutor(this);
         if (getCommand("streampingall") != null) getCommand("streampingall").setExecutor(this);
+        if (getCommand("streamip") != null) getCommand("streamip").setExecutor(this);
 
         getServer().getPluginManager().registerEvents(this, this);
 
@@ -197,6 +204,10 @@ public class StreamCam extends JavaPlugin implements CommandExecutor, Listener {
             return handlePingAllCommand(player);
         }
 
+        if (commandName.equals("streamip")) {
+            return handleIpCommand(player, args);
+        }
+
         if (!player.hasPermission("streamcam.use")) {
             player.sendMessage(Component.text("无权使用。", NamedTextColor.RED));
             return true;
@@ -280,6 +291,75 @@ public class StreamCam extends JavaPlugin implements CommandExecutor, Listener {
         return true;
     }
 
+    // --- IP 查询指令逻辑 ---
+    private boolean handleIpCommand(Player player, String[] args) {
+        if (!player.hasPermission("streamcam.ping")) {
+            player.sendMessage(Component.text("无权使用此指令。", NamedTextColor.RED));
+            return true;
+        }
+
+        if (args.length == 0) {
+            player.sendMessage(Component.text("用法: /streamip <ip>", NamedTextColor.RED));
+            return true;
+        }
+
+        String ip = args[0];
+        player.sendMessage(Component.text("正在查询 IP: " + ip + " ...", NamedTextColor.GRAY));
+
+        // 异步查询
+        Bukkit.getAsyncScheduler().runNow(this, (task) -> {
+            try {
+                URL url = new URL("http://ip-api.com/json/" + ip + "?lang=zh-CN");
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setConnectTimeout(5000);
+                connection.setReadTimeout(5000);
+
+                int responseCode = connection.getResponseCode();
+                if (responseCode == 200) {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    StringBuilder response = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        response.append(line);
+                    }
+                    reader.close();
+
+                    JsonObject json = JsonParser.parseString(response.toString()).getAsJsonObject();
+                    if ("success".equals(json.get("status").getAsString())) {
+                        String country = json.get("country").getAsString();
+                        String region = json.get("regionName").getAsString();
+                        String city = json.get("city").getAsString();
+                        String isp = json.get("isp").getAsString();
+
+                        String location = String.format("%s %s %s", country, region, city);
+
+                        // 回到主线程发送消息
+                        player.getScheduler().run(this, (t) -> {
+                            player.sendMessage(Component.text("--- IP 归属地查询结果 ---", NamedTextColor.GREEN));
+                            player.sendMessage(Component.text("IP: " + ip, NamedTextColor.YELLOW));
+                            player.sendMessage(Component.text("位置: " + location, NamedTextColor.AQUA));
+                            player.sendMessage(Component.text("ISP: " + isp, NamedTextColor.GOLD));
+                        }, null);
+                    } else {
+                        String errorMsg = json.has("message") ? json.get("message").getAsString() : "Unknown error";
+                        player.getScheduler().run(this, (t) ->
+                                player.sendMessage(Component.text("查询失败: " + errorMsg, NamedTextColor.RED)), null);
+                    }
+                } else {
+                    player.getScheduler().run(this, (t) ->
+                            player.sendMessage(Component.text("查询失败，HTTP 状态码: " + responseCode, NamedTextColor.RED)), null);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                player.getScheduler().run(this, (t) ->
+                        player.sendMessage(Component.text("查询出错: " + e.getMessage(), NamedTextColor.RED)), null);
+            }
+        });
+
+        return true;
+    }
+
     private void sendPingInfo(Player receiver, Player target) {
         String ip = "Unknown";
         if (target.getAddress() != null && target.getAddress().getAddress() != null) {
@@ -292,6 +372,10 @@ public class StreamCam extends JavaPlugin implements CommandExecutor, Listener {
                 .append(Component.text(ip, NamedTextColor.GOLD)
                         .clickEvent(ClickEvent.copyToClipboard(ip))
                         .hoverEvent(HoverEvent.showText(Component.text("点击复制 IP", NamedTextColor.GRAY))))
+                .append(Component.text(" ", NamedTextColor.GRAY))
+                .append(Component.text("[查]", NamedTextColor.DARK_AQUA)
+                        .clickEvent(ClickEvent.runCommand("/streamip " + ip))
+                        .hoverEvent(HoverEvent.showText(Component.text("点击查询归属地", NamedTextColor.GRAY))))
                 .append(Component.text(" - ", NamedTextColor.GRAY))
                 .append(Component.text(ping + "ms", ping > 250 ? NamedTextColor.RED : NamedTextColor.GREEN));
 
