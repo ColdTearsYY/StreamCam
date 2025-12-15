@@ -1,9 +1,10 @@
 name: StreamCam
-version: 1.0.0
+version: 1.1.0
 main: com.example.streamcam.StreamCam
 # 建议使用 1.20 或更高的 API 版本以兼容 Paper/Folia 的新特性
 api-version: 1.20
-author: GeminiAssistant
+folia-supported: true
+author: ColdTearsYY
 description: A spectator camera cycling and focus plugin with AFK/Blacklist filtering.
 
 commands:
@@ -27,6 +28,16 @@ commands:
     usage: /streamnext
     permission: streamcam.use
     aliases: [snext]
+  streamping:
+    description: 查看指定玩家的Ping值和IP。
+    usage: /streamping [玩家名]
+    permission: streamcam.ping
+    aliases: [sping]
+  streampingall:
+    description: 查看所有玩家的Ping值和IP，按Ping从高到低排序。
+    usage: /streampingall
+    permission: streamcam.ping
+    aliases: [spingall]
 
 permissions:
   streamcam.use:
@@ -34,4 +45,7 @@ permissions:
     default: op
   streamcam.admin:
     description: 允许玩家管理黑名单。
+    default: op
+  streamcam.ping:
+    description: 允许玩家查看Ping值和IP。
     default: op

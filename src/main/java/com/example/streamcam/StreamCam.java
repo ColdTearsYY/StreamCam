@@ -2,6 +2,8 @@ package com.example.streamcam;
 
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
@@ -44,6 +46,8 @@ public class StreamCam extends JavaPlugin implements CommandExecutor, Listener {
         if (getCommand("streamfocus") != null) getCommand("streamfocus").setExecutor(this);
         if (getCommand("streambl") != null) getCommand("streambl").setExecutor(this);
         if (getCommand("streamnext") != null) getCommand("streamnext").setExecutor(this); // 注册新指令
+        if (getCommand("streamping") != null) getCommand("streamping").setExecutor(this);
+        if (getCommand("streampingall") != null) getCommand("streampingall").setExecutor(this);
 
         getServer().getPluginManager().registerEvents(this, this);
 
@@ -185,6 +189,14 @@ public class StreamCam extends JavaPlugin implements CommandExecutor, Listener {
             return handleBlacklistCommand(player, args);
         }
 
+        if (commandName.equals("streamping")) {
+            return handlePingCommand(player, args);
+        }
+
+        if (commandName.equals("streampingall")) {
+            return handlePingAllCommand(player);
+        }
+
         if (!player.hasPermission("streamcam.use")) {
             player.sendMessage(Component.text("无权使用。", NamedTextColor.RED));
             return true;
@@ -228,6 +240,62 @@ public class StreamCam extends JavaPlugin implements CommandExecutor, Listener {
         player.sendActionBar(Component.text("⏩ 手动切换到下一个目标...", NamedTextColor.AQUA));
 
         return true;
+    }
+
+    // --- Ping 指令逻辑 ---
+    private boolean handlePingCommand(Player player, String[] args) {
+        if (!player.hasPermission("streamcam.ping")) {
+            player.sendMessage(Component.text("无权使用此指令。", NamedTextColor.RED));
+            return true;
+        }
+
+        Player target;
+        if (args.length > 0) {
+            target = Bukkit.getPlayer(args[0]);
+            if (target == null) {
+                player.sendMessage(Component.text("找不到玩家: " + args[0], NamedTextColor.RED));
+                return true;
+            }
+        } else {
+            target = player;
+        }
+
+        sendPingInfo(player, target);
+        return true;
+    }
+
+    private boolean handlePingAllCommand(Player player) {
+        if (!player.hasPermission("streamcam.ping")) {
+            player.sendMessage(Component.text("无权使用此指令。", NamedTextColor.RED));
+            return true;
+        }
+
+        List<Player> sortedPlayers = new ArrayList<>(Bukkit.getOnlinePlayers());
+        sortedPlayers.sort((p1, p2) -> Integer.compare(p2.getPing(), p1.getPing())); // Descending
+
+        player.sendMessage(Component.text("--- 所有玩家 Ping (高 -> 低) ---", NamedTextColor.YELLOW));
+        for (Player p : sortedPlayers) {
+            sendPingInfo(player, p);
+        }
+        return true;
+    }
+
+    private void sendPingInfo(Player receiver, Player target) {
+        String ip = "Unknown";
+        if (target.getAddress() != null && target.getAddress().getAddress() != null) {
+            ip = target.getAddress().getAddress().getHostAddress();
+        }
+        int ping = target.getPing();
+
+        Component message = Component.text(target.getName(), NamedTextColor.AQUA)
+                .append(Component.text(" - ", NamedTextColor.GRAY))
+                .append(Component.text(ip, NamedTextColor.GOLD)
+                        .clickEvent(ClickEvent.copyToClipboard(ip))
+                        .hoverEvent(HoverEvent.showText(Component.text("点击复制 IP", NamedTextColor.GRAY))))
+                .append(Component.text(" - ", NamedTextColor.GRAY))
+                .append(Component.text(ping + "ms", ping > 250 ? NamedTextColor.RED : NamedTextColor.GREEN));
+
+        receiver.sendMessage(message);
     }
 
 
