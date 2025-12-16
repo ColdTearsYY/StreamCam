@@ -185,23 +185,23 @@ public class StreamCam extends JavaPlugin implements CommandExecutor, Listener {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        String commandName = command.getName().toLowerCase();
+
+        if (commandName.equals("streamping")) {
+            return handlePingCommand(sender, args);
+        }
+
+        if (commandName.equals("streampingall")) {
+            return handlePingAllCommand(sender);
+        }
+
         if (!(sender instanceof Player player)) {
             sender.sendMessage(Component.text("仅限玩家使用。", NamedTextColor.RED));
             return true;
         }
 
-        String commandName = command.getName().toLowerCase();
-
         if (commandName.equals("streambl")) {
             return handleBlacklistCommand(player, args);
-        }
-
-        if (commandName.equals("streamping")) {
-            return handlePingCommand(player, args);
-        }
-
-        if (commandName.equals("streampingall")) {
-            return handlePingAllCommand(player);
         }
 
         if (commandName.equals("streamip")) {
@@ -254,9 +254,9 @@ public class StreamCam extends JavaPlugin implements CommandExecutor, Listener {
     }
 
     // --- Ping 指令逻辑 ---
-    private boolean handlePingCommand(Player player, String[] args) {
-        if (!player.hasPermission("streamcam.ping")) {
-            player.sendMessage(Component.text("无权使用此指令。", NamedTextColor.RED));
+    private boolean handlePingCommand(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("streamcam.ping")) {
+            sender.sendMessage(Component.text("无权使用此指令。", NamedTextColor.RED));
             return true;
         }
 
@@ -264,29 +264,34 @@ public class StreamCam extends JavaPlugin implements CommandExecutor, Listener {
         if (args.length > 0) {
             target = Bukkit.getPlayer(args[0]);
             if (target == null) {
-                player.sendMessage(Component.text("找不到玩家: " + args[0], NamedTextColor.RED));
+                sender.sendMessage(Component.text("找不到玩家: " + args[0], NamedTextColor.RED));
                 return true;
             }
         } else {
-            target = player;
+            if (sender instanceof Player) {
+                target = (Player) sender;
+            } else {
+                sender.sendMessage(Component.text("控制台使用必须指定玩家名。", NamedTextColor.RED));
+                return true;
+            }
         }
 
-        sendPingInfo(player, target);
+        sendPingInfo(sender, target);
         return true;
     }
 
-    private boolean handlePingAllCommand(Player player) {
-        if (!player.hasPermission("streamcam.ping")) {
-            player.sendMessage(Component.text("无权使用此指令。", NamedTextColor.RED));
+    private boolean handlePingAllCommand(CommandSender sender) {
+        if (!sender.hasPermission("streamcam.ping")) {
+            sender.sendMessage(Component.text("无权使用此指令。", NamedTextColor.RED));
             return true;
         }
 
         List<Player> sortedPlayers = new ArrayList<>(Bukkit.getOnlinePlayers());
         sortedPlayers.sort((p1, p2) -> Integer.compare(p2.getPing(), p1.getPing())); // Descending
 
-        player.sendMessage(Component.text("--- 所有玩家 Ping (高 -> 低) ---", NamedTextColor.YELLOW));
+        sender.sendMessage(Component.text("--- 所有玩家 Ping (高 -> 低) ---", NamedTextColor.YELLOW));
         for (Player p : sortedPlayers) {
-            sendPingInfo(player, p);
+            sendPingInfo(sender, p);
         }
         return true;
     }
@@ -360,26 +365,35 @@ public class StreamCam extends JavaPlugin implements CommandExecutor, Listener {
         return true;
     }
 
-    private void sendPingInfo(Player receiver, Player target) {
+    private void sendPingInfo(CommandSender receiver, Player target) {
         String ip = "Unknown";
         if (target.getAddress() != null && target.getAddress().getAddress() != null) {
             ip = target.getAddress().getAddress().getHostAddress();
         }
         int ping = target.getPing();
 
-        Component message = Component.text(target.getName(), NamedTextColor.AQUA)
-                .append(Component.text(" - ", NamedTextColor.GRAY))
-                .append(Component.text(ip, NamedTextColor.GOLD)
-                        .clickEvent(ClickEvent.copyToClipboard(ip))
-                        .hoverEvent(HoverEvent.showText(Component.text("点击复制 IP", NamedTextColor.GRAY))))
-                .append(Component.text(" ", NamedTextColor.GRAY))
-                .append(Component.text("[查]", NamedTextColor.DARK_AQUA)
-                        .clickEvent(ClickEvent.runCommand("/streamip " + ip))
-                        .hoverEvent(HoverEvent.showText(Component.text("点击查询归属地", NamedTextColor.GRAY))))
-                .append(Component.text(" - ", NamedTextColor.GRAY))
-                .append(Component.text(ping + "ms", ping > 250 ? NamedTextColor.RED : NamedTextColor.GREEN));
+        if (receiver instanceof Player) {
+            Component message = Component.text(target.getName(), NamedTextColor.AQUA)
+                    .append(Component.text(" - ", NamedTextColor.GRAY))
+                    .append(Component.text(ip, NamedTextColor.GOLD)
+                            .clickEvent(ClickEvent.copyToClipboard(ip))
+                            .hoverEvent(HoverEvent.showText(Component.text("点击复制 IP", NamedTextColor.GRAY))))
+                    .append(Component.text(" ", NamedTextColor.GRAY))
+                    .append(Component.text("[查]", NamedTextColor.DARK_AQUA)
+                            .clickEvent(ClickEvent.runCommand("/streamip " + ip))
+                            .hoverEvent(HoverEvent.showText(Component.text("点击查询归属地", NamedTextColor.GRAY))))
+                    .append(Component.text(" - ", NamedTextColor.GRAY))
+                    .append(Component.text(ping + "ms", ping > 250 ? NamedTextColor.RED : NamedTextColor.GREEN));
 
-        receiver.sendMessage(message);
+            receiver.sendMessage(message);
+        } else {
+            Component message = Component.text(target.getName(), NamedTextColor.AQUA)
+                    .append(Component.text(" - ", NamedTextColor.GRAY))
+                    .append(Component.text(ip, NamedTextColor.GOLD))
+                    .append(Component.text(" - ", NamedTextColor.GRAY))
+                    .append(Component.text(ping + "ms", ping > 250 ? NamedTextColor.RED : NamedTextColor.GREEN));
+            receiver.sendMessage(message);
+        }
     }
 
 
