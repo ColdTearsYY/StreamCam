@@ -1,8 +1,8 @@
 # StreamCam
 
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.20+-green.svg)](https://www.minecraft.net/)
-[![Paper](https://img.shields.io/badge/Paper-1.21.1-blue.svg)](https://papermc.io/)
-[![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://www.oracle.com/java/)
+[![Minecraft](https://img.shields.io/badge/Minecraft-26.2-green.svg)](https://www.minecraft.net/)
+[![Paper](https://img.shields.io/badge/Paper-26.2-blue.svg)](https://papermc.io/)
+[![Java](https://img.shields.io/badge/Java-25-orange.svg)](https://www.oracle.com/java/)
 
 一个受 LiveRecorder 启发的 Minecraft 服务器插件，专为直播、录制和服务器监控设计。实现了智能的自动化导播功能，可以自动在服务器玩家之间轮换观察视角。
 
@@ -37,14 +37,14 @@
 ## 📦 安装
 
 ### 要求
-- Minecraft 服务器：1.20 或更高版本
-- 服务端核心：Paper / Folia / Purpur 1.21.1+
-- Java 版本：21 或更高
+- Minecraft 服务器：26.2
+- 服务端核心：Paper / Folia / Purpur 26.2
+- Java 版本：25
 
 ### 步骤
-1. 下载最新的 `StreamCam-1.0.jar`
+1. 下载 `StreamCam-1.2.1-ourtravel.jar`
 2. 将 JAR 文件放入服务器的 `plugins` 目录
-3. 重启服务器或使用 `/reload` 命令
+3. 重启服务器使插件加载
 4. 编辑 `plugins/StreamCam/config.yml` 进行配置（可选）
 
 ## 🎮 使用指南
@@ -117,13 +117,13 @@ cd StreamCam
 # 使用 Maven 构建
 mvn clean package
 
-# 生成的 JAR 文件位于 target/StreamCam-1.0.jar
+# 生成的 JAR 文件位于 target/StreamCam-1.2.1-ourtravel.jar
 ```
 
 ### 开发环境
 - IDE: IntelliJ IDEA / Eclipse
 - 构建工具: Maven 3.6+
-- JDK: 21
+- JDK: 25
 
 ## 📝 工作原理
 

@@ -1,8 +1,7 @@
 name: StreamCam
-version: 1.2.0
+version: ${project.version}
 main: com.example.streamcam.StreamCam
-# 建议使用 1.20 或更高的 API 版本以兼容 Paper/Folia 的新特性
-api-version: 1.20
+api-version: '26.2'
 folia-supported: true
 author: ColdTearsYY
 description: A spectator camera cycling and focus plugin with AFK/Blacklist filtering.

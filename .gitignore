@@ -1,4 +1,6 @@
-# Compiled class file
+# Local build tooling and compiled artifacts
+.build-deps/
+target/
 *.class
 
 # Log file

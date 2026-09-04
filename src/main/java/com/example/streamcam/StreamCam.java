@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -314,8 +314,8 @@ public class StreamCam extends JavaPlugin implements CommandExecutor, Listener {
         // 异步查询
         Bukkit.getAsyncScheduler().runNow(this, (task) -> {
             try {
-                URL url = new URL("http://ip-api.com/json/" + ip + "?lang=zh-CN");
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                URI endpoint = URI.create("http://ip-api.com/json/" + ip + "?lang=zh-CN");
+                HttpURLConnection connection = (HttpURLConnection) endpoint.toURL().openConnection();
                 connection.setRequestMethod("GET");
                 connection.setConnectTimeout(5000);
                 connection.setReadTimeout(5000);
@@ -516,14 +516,14 @@ public class StreamCam extends JavaPlugin implements CommandExecutor, Listener {
         }
         Player target = Bukkit.getPlayer(targetId);
 
-        // 检查黑名单
-        if (blacklist.contains(targetId)) {
-            streamer.sendActionBar(Component.text(target.getName() + " 在黑名单中，寻找下一位...", NamedTextColor.DARK_RED));
+        if (target == null || !target.isOnline()) {
             switchNextPlayer(streamer, AFK_THRESHOLD_FOCUS);
             return;
         }
 
-        if (target == null || !target.isOnline()) {
+        // 检查黑名单
+        if (blacklist.contains(targetId)) {
+            streamer.sendActionBar(Component.text(target.getName() + " 在黑名单中，寻找下一位...", NamedTextColor.DARK_RED));
             switchNextPlayer(streamer, AFK_THRESHOLD_FOCUS);
             return;
         }
