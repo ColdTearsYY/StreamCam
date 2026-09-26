@@ -6,14 +6,14 @@
 
     <groupId>com.example</groupId>
     <artifactId>StreamCam</artifactId>
-    <version>1.2.1-ourtravel</version>
+    <version>1.2.2-ourtravel</version>
     <packaging>jar</packaging>
 
     <name>StreamCam</name>
 
     <properties>
         <java.version>25</java.version>
-        <paper.version>26.2.build.121-stable</paper.version>
+        <paper.version>26.3.build.42-alpha</paper.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 

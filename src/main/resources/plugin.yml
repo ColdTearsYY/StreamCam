@@ -1,7 +1,7 @@
 name: StreamCam
 version: ${project.version}
 main: com.example.streamcam.StreamCam
-api-version: '26.2'
+api-version: '26.3'
 folia-supported: true
 author: ColdTearsYY
 description: A spectator camera cycling and focus plugin with AFK/Blacklist filtering.
